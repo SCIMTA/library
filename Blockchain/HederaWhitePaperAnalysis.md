@@ -71,13 +71,13 @@ Cốt lõi của Hashgraph Consensus bao gồm:
 
 - Thuật toán đồng thuận hashgraph sử dụng một giao thức gọi là "gossip protocol" (giao thức tin đồn). Các thành viên trong mạng sẽ trao đổi ngẫu nhiên với nhau về thông tin mà họ đã biết, và thông tin sẽ được lan truyền lặp lại tới khi mọi thành viên có cùng 1 hashgraph. Bằng cách này, nếu một thành viên nhận được một thông tin mới, anh ta sẽ lan truyền nó trong mạng một cách nhanh chóng theo cấp số nhân trong cộng đồng.
 
-- Ta có thể biểu diễn lịch sử của một hashgraph bằng một đồ thị có hướng, với mỗi đỉnh là một sự kiện gossip. 
-![alt text](image.png)
-_Hình 1, Leemon Baird, 2016_
+- Ta có thể biểu diễn lịch sử của một hashgraph bằng một đồ thị có hướng, với mỗi đỉnh là một sự kiện gossip.
+  ![alt text](image.png)
+  _Hình 1, Leemon Baird, 2016_
 
 - Trong thuật toán đồng thuật, đồ thị được coi là một cấu trúc dữ liệu. Trong ví dụ hình 2 dưới đây, sự kiện màu đỏ có thể chứa thông tin về transaction bất kì mà Alice chọn để khởi tạo tại thời điểm đó, và kèm theo đó là timestamp mà Alice khởi tạo. Những đỉnh màu xám là những sự kiện không bao gồm trong đó mà được xác định bởi tập các hash về mặt mật mã học.
-![alt text](image-1.png)
-_Hình 2, Leemon Baird, 2016_
+  ![alt text](image-1.png)
+  _Hình 2, Leemon Baird, 2016_
 - Cấu trúc dạng này cũng được đùng cho nhiều mục đích khác nhau, ví dụ như Git, khác đôi chút là Git không ghi lại các sự kiện về sự tương tác giữa các thành viên. Hashgraph từ đó được xây dựng cho một mục địch là lưu lại lịch sử tương tác của các thành viên trong mạng.
 - Gossip protocol được sử dụng rộng rãi để truyền nhiều loại thông tin. Những loại thông tin đó có thể liên quan đến danh tính của user, hoặc những thông tin/tin đồn về các transaction, "gossip" về những khối blockchain hoặc bất kì thông tin nào mà một thành viên muốn chia sẻ với mọi người khác.
 - Lan truyền một hashgraph mang lại lợi ích về thông tin rất lớn. Nếu một transaction mới được đặt trong payload của một sự kiện, nó sẽ nhanh chóng lan truyền tới tất cả các thành viên, cho tới khi toàn mạng biết về sự kiện đó.
@@ -87,7 +87,8 @@ _Hình 2, Leemon Baird, 2016_
 
 ### IV. Consensus Algorithm
 
-Nhưng như vậy vẫn chưa thể đảm bảo mọi thành viên sẽ biết về mọi sự kiện trong mạng. Mạng cần phải thống nhất về thứ tự tuyến tính của các sự kiện và đồng thời là những giao dịch được ghi bên trong sự kiện đó. 
+Nhưng như vậy vẫn chưa thể đảm bảo mọi thành viên sẽ biết về mọi sự kiện trong mạng. Mạng cần phải thống nhất về thứ tự tuyến tính của các sự kiện và đồng thời là những giao dịch được ghi bên trong sự kiện đó.
+
 - Như đã đề cập trước đó, đồng thuận bằng hashgraph không yêu cầu bất kỳ phiếu bầu nào phải gửi lên mạng. Mọi thành viên có thể tính toán được phiếu bầu khi họ dùng chung một thuật toán và thông tin, các kết quả cuối cùng sẽ giống nhau. Tuy nhiên cũng như đã nói, có thể xảy ra việc Alice và Bob có thể không có cùng hashgraph tại một thời điểm cụ thể, có thể họ có chung lịch sử sự kiện nhưng không phải những sự kiện gần đây nhất. Hơn nữa, có thể xuất hiện một sự kiện được khởi phát từ một thành viên trong mạng nhưng đến chậm hơn và vì đó nó có vị trí thấp hơn trong đồ thị hashgraph.
 - Để giải quyết nó, Baird đề xuất sử dụng dụng một hệ thống "bỏ phiếu giả" (virtual voting).
 
@@ -96,41 +97,55 @@ Giả sử Alice có hashgraph $A$, Bob có hashgraph $B$. Những đồ thị n
 Nếu Alice biết về sự kiện $x$ nhưng Bob thì không, giả định cả 2 đều trung thực và tích cực tương tác, thì Bob sẽ sớm nhận được thông tin về sự kiện đó một cách chính xác và nhanh chóng thông qua gossip protocol.
 Thuật toán đồng thuận của Baird giả định rằng điều đó sẽ xảy ra, nhưng không đưa ra dự đoán nào về tốc độ của nó. Giao thức của ông hoàn toàn bất đồng bộ, và không giả định về khoảng thời gian chờ của các sự kiện, tốc độ lan truyền thông tin hay thời gian thực hiện tiến trình.
 
-Alice sẽ tính toán thứ tự của tất cả các sự kiện trong $A$ bằng một chuỗi các cuộc bầu chọn (elections). Trong mỗi lần bầu chọn, một số sự kiện trong $A$ được coi là bỏ phiếu, và một số được coi là nhận được những biếu bầu đó. Qua nhiều cuộc bỏ phiếu như vậy, một số sự kiện có thể năm trong một số cuộ bỏ phiếu nhưng không phải tất cả. Ví dụ như nếu sự kiện được tạo ra bởi Bob, nghĩa là Bob đã thực hiện bỏ phiếu trong 1 cuộc bầu chọn. Những sự kiện này có thể tính toán hoàn toàn cục bộ, Alice có thể số phiếu bầu mà Bob có thể sẽ gửi cho cô ấy, và ngược lại.
+Alice sẽ tính toán thứ tự của tất cả các sự kiện trong $A$ bằng một chuỗi các cuộc bầu chọn (elections). Trong mỗi lần bầu chọn, một số sự kiện trong $A$ được coi là bỏ phiếu, và một số được coi là nhận được những biếu bầu đó. Qua nhiều cuộc bỏ phiếu như vậy, một số sự kiện có thể năm trong một số cuộ bỏ phiếu nhưng không phải tất cả. Ví dụ như nếu sự kiện được tạo ra bởi Bob, nghĩa là Bob đã thực hiện bỏ phiếu trong 1 cuộc bầu chọn. Những sự kiện này có thể tính toán hoàn toàn cục bộ, Alice có thể tính số phiếu bầu mà Bob có thể sẽ gửi cho cô ấy, và ngược lại.
+
+Về tổng thể, virtual voting giúp đạt được hiệu suất về băng thông và sự độc lập trong tính toán, ngoài ra nó còn đảm bảo các thành viên trong mạng luôn tính toán các lượt vote theo đúng quy định. Giả sử Alice là thành thật, những tính toán của Alice về lượt vote của Bob sẽ là trung thực, khi đó cho dù "real Bob" gian lận thì cũng không thể ảnh hưởng đến kết quả tính toán của Alice với "virtual Bob".
 
 ![alt text](image-2.png)
-*Virtual voting, Rahul, accubits.com*
+_Virtual voting, Rahul, accubits.com_
 
+Lúc này, Bob nghĩ ra một cách cheat khác. Bob tạo 1 sự kiện $x$ với hash sự kiện cha của nó trỏ đến sự kiện $z$ cũng của Bob tạo ra. Sau đó anah ta tiếp tục tạo sự kiện $y$ cũng chọn $z$ là sự kiện cha thay vì $x$. Hashgraph của Bob lúc này sẽ trở thành 1 tree mà không còn là 1 chain nữa vì xuất hiện nhánh $y$ và $x$ đều mọc từ $z$. Nếu Bob truyền thông tin về $x$ cho Alice, $y$ cho Carol, cả 2 có thể sẽ không nhận ra sự phân nhánh trong một khoảng thời gian nhất định và dẫn đến tính toán hashgraph khác nhau.
 
+Hashgraph sử dụng kỹ thuật gọi là "seeing" và "strongly seeing" để giải quyết vấn đề này. Kỹ thuật này dựa trên định nghĩa về "ancestor" và "self-ancestor" của một sự kiện sao cho một sự kiện được coi đồng thời là ancestor và self-ancestor của chính nó.
 
-## 5. Security and Privacy
+Để tránh việc bị các nhánh mà cheater "fork" ra làm phân tán sự đồng thuận, khi có $n$ thành viên và một sự kiện $w$ "strongly see" sự kiện $x$, nếu $w$ được thấy (nằm trong hashgraph chain) trong nhiều hơn $2n/3$ sự kiện bởi cách thành viên khác nhau, mỗi sự kiện đều sẽ thấy được $x$.
 
-- Security Measures
-- Privacy Features
-- Attack Vectors
+![alt text](image-3.png)
+_Hình 3, Leemon Baird, 2016_
 
-## 6. Token Economics
+Thiết kế này cho phép giao thức đồng thuận có thể đạt đưuọc BFT mà không cần thực sự phải vote mà chỉ cần virtual voting. Giả sử sự kiện $x$ và $y$ ở những nhánh được cheater tạo ra, nếu hashgraph $A$ và $B$ đồng nhất, thì không thể tồn tại một sự kiện $x$ "strongly see" trong $A$ và một sự kiện $y$ "strongly see" trong B. Bổ đề này đảm bảo rằng dù cheater cố gắng fork thì cũng không thể khiến các thành viên trong mạng đưa ra các quyết định khác nhau được.
 
-- Token Distribution
-- Token Utility
-- Economic Incentives
+Về chi tiết các thuật toán được định nghĩa, bạn có thể đọc thêm trong paper gốc của tác giả
 
-## 7. Use Cases and Applications
+### V. Generalizations and enhancements
 
-- Industry Adoption
-- Real-world Applications
+Ta điểm lại một số ý tổng quan và cải tiến với hashgraph
 
-## 8. Comparison with Other Blockchains
+#### 1. proof-of-stake
 
-- Strengths and Weaknesses
-- Competitive Analysis
+- Với mọi thành viên là ngang hàng, thuật toán hashgraph đòi hỏi một quyết định phải phụ thuộc vào "nhiều hơn $2n/3$ tổng số thành viên" và "ít nhất một nửa các sự kiện nhân chứng nổi tiếng (famous witness events)". Đồng thời cũng sử dụng ý tưởng về "trung vị" của tập hợp số (thời gian của sự kiện được lấy là trung vị thời gian nhận của tất cả các node). Những điều này chứng minh sự hội tụ Byzantine khi có hơn $2n/3$ thành viên là trung thực.
 
-## 9. Conclusion
+#### 2. signed state
 
-- Summary of Findings
-- Future Outlook
+- Một cải tiến khác là signed states. Khi đã đạt được đồng thuận về các nhân chứng nổi tiếng trong vòng bầu chọn $r$, tổng thứ tự có thể được tính cho mọi sự kiện trong lịch sử từ round $r$ trở xuống. Nó cũng đảm bảo mọi sự kiện khác (kể cả chưa biết) sẽ nằm ở round có số thứ tự lớn hơn $r$. Nói cách khác, ở thời điểm này, lịch sử sự kiện bị đóng băng và không thể sửa đổi với mọi sự kiện trước round $r$.
 
-## 10. References
+#### 3. Efficient gossip
+
+- Gossip protocoll được chứng minh là có độ hiệu quả về băng thông. Giẩ sự ta có dủ số transaction được tạo để mỗi sự kiện chứa ít nhất 1 transaction. Trong bất kỳ máy trạng thái nhân bản nào, sử dụng mạng điểm-điểm như internet, việc cần thiết là mỗi thành viên nhận mỗi giao dịch đã ký một lần và cũng gửi mỗi giao dịch đã ký trung bình một lần.
+
+#### 4. Fast elections
+
+- Khi tất cả thành viên trong nhóm online và tương tác, độ nổi tiếng của nhân chứng sẽ luôn được quyết định ngay lập tức mà không cần nhiều round bình chọn.
+
+#### 5. Efficient caculations
+
+- Các phép tính và so sánh mảng có thể được thực hiện bằng mutithreading, sử dụng ALU, assembly language, hoặc GPU (tính toán song song với vector)
+
+## 5. Conclusions
+
+Kiến trúc và thuật toán đồng thuận hashgraph của Swirlds đạt được những tiêu chí phù hợp cho một mạng blockchain. Với gossip protocol, hashgraph, virtual voting,... đã chứng minh được tính công bằng, hiệu suất và khả năng đạt được trạng thái BFT. Hashgraph cũng như Hedera blockchain hứa hẹn đem lại tính minh bạch và mở cửa cho cộng đồng phát triển.
+
+## 6. References
 
 #### [1] What is Hedera? | Hedera. (2018). Hedera. https://hedera.com/learning/hedera-hashgraph/what-is-hedera-hashgraph
 
