@@ -14,4 +14,7 @@
 
 ## Mục lục
 
-1. [Giới thiệu](Chap_1.%20Introduction/README.md)
+Chương:
+
+1. [Giới thiệu](Chap_1.Introduction/README.md)
+2. [Tính toán song song không đồng nhất](Chap_2.Heterogeneous_Parallel_Computing/README.md)
